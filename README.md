@@ -1,4 +1,4 @@
-# Lelo SaaS - CloudSyncAI Platform
+# CloudSyncAI Platform
 
 A modern SaaS application built with Next.js 14, featuring AI-powered workflow automation, multi-cloud connections, real-time data synchronization, and comprehensive team collaboration tools.
 
@@ -317,3 +317,4 @@ For support, email your-email@example.com or open an issue in the GitHub reposit
 ---
 
 **Made with ❤️ using Next.js and TypeScript**
+
