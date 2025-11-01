@@ -3,7 +3,11 @@ import mongoose, { Schema, type Document } from "mongoose"
 export interface IUser extends Document {
   name: string
   email: string
-  password: string
+  password?: string
+  provider?: string
+  googleId?: string
+  image?: string
+  emailVerified?: Date
   createdAt: Date
 }
 
@@ -21,9 +25,25 @@ const UserSchema: Schema = new Schema({
   },
   password: {
     type: String,
-    required: [true, "Please provide a password"],
+    required: false, // Optional for OAuth users
     minlength: [6, "Password should be at least 6 characters"],
     select: false,
+  },
+  provider: {
+    type: String,
+    enum: ["credentials", "google"],
+    default: "credentials",
+  },
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true, // Allows multiple null values
+  },
+  image: {
+    type: String,
+  },
+  emailVerified: {
+    type: Date,
   },
   createdAt: {
     type: Date,

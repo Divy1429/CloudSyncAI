@@ -33,7 +33,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid email or password" }, { status: 401 })
     }
 
-    return NextResponse.json(
+    // Generate JWT token
+    const { generateToken } = await import("@/lib/jwt")
+    const token = generateToken({
+      userId: user._id.toString(),
+      email: user.email,
+      name: user.name,
+    })
+
+    // Log activity
+    const { createActivityLog } = await import("@/lib/activity")
+    await createActivityLog({
+      userId: user._id.toString(),
+      action: "user.login",
+      description: `${user.name} logged in`,
+      ipAddress: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || undefined,
+      userAgent: request.headers.get("user-agent") || undefined,
+    })
+
+    // Create response with token in cookie
+    const response = NextResponse.json(
       {
         success: true,
         message: "Signed in successfully",
@@ -45,6 +64,17 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 },
     )
+
+    // Set HTTP-only cookie for security
+    response.cookies.set("auth-token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: "/",
+    })
+
+    return response
   } catch (error: any) {
     console.error("Login error:", error)
     return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 })

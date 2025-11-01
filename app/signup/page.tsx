@@ -6,8 +6,11 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { LeLoLogo } from "@/components/lelo-logo"
 import Link from "next/link"
+import { useAuth } from "@/contexts/AuthContext"
+import { GoogleSignInButton } from "@/components/google-signin-button"
 
 export default function SignUpPage() {
+  const { signup } = useAuth()
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -15,6 +18,7 @@ export default function SignUpPage() {
     confirmPassword: "",
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -27,26 +31,13 @@ export default function SignUpPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError("")
 
     try {
-      const response = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        alert("Account created successfully! Redirecting to login...")
-        window.location.href = "/login"
-      } else {
-        alert(data.error || "Failed to create account")
-      }
-    } catch (error) {
-      alert("An error occurred. Please try again.")
+      await signup(formData.name, formData.email, formData.password, formData.confirmPassword)
+      // Redirect handled by AuthContext
+    } catch (error: any) {
+      setError(error.message || "Failed to create account. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -69,6 +60,13 @@ export default function SignUpPage() {
             <h1 className="text-3xl font-bold text-foreground mb-2">Create Account</h1>
             <p className="text-foreground/60">Join CloudSync AI and streamline your data workflow</p>
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="bg-destructive/10 border border-destructive/50 text-destructive px-4 py-3 rounded-xl">
+              {error}
+            </div>
+          )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -161,6 +159,19 @@ export default function SignUpPage() {
               {isLoading ? "Creating Account..." : "Create Account"}
             </Button>
           </form>
+
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-card text-foreground/60">Or continue with</span>
+            </div>
+          </div>
+
+          {/* Google Sign-In Button */}
+          <GoogleSignInButton text="Sign up with Google" />
 
           {/* Sign In Link */}
           <div className="mt-6 text-center">

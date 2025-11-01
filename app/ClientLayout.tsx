@@ -3,6 +3,8 @@
 import type React from "react"
 import { Inter, JetBrains_Mono, Playfair_Display } from "next/font/google"
 import { Suspense } from "react"
+import { AuthProvider } from "@/contexts/AuthContext"
+import { SessionProvider } from "next-auth/react"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,7 +29,11 @@ function ClientLayoutContent({
 }>) {
   return (
     <html lang="en">
-      <body className={`font-sans ${inter.variable} ${jetbrainsMono.variable} ${playfair.variable}`}>{children}</body>
+      <body className={`font-sans ${inter.variable} ${jetbrainsMono.variable} ${playfair.variable}`}>
+        <SessionProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </SessionProvider>
+      </body>
     </html>
   )
 }
