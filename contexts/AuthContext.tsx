@@ -123,6 +123,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     setUser(data.user)
     
+    // Set auth indicator in localStorage (as backup check)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('auth_check', 'true')
+    }
+    
     // Check for redirect URL in query params
     const urlParams = new URLSearchParams(window.location.search)
     const redirect = urlParams.get("redirect")
@@ -153,6 +158,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     setUser(data.user)
     
+    // Set auth indicator in localStorage (as backup check)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('auth_check', 'true')
+    }
+    
     // Check for redirect URL in query params
     const urlParams = new URLSearchParams(window.location.search)
     const redirect = urlParams.get("redirect")
@@ -177,6 +187,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Also clear JWT token
       await fetch("/api/auth/logout", { method: "POST" })
       setUser(null)
+      
+      // Clear localStorage auth indicator
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth_check')
+      }
+      
       router.push("/login")
     } catch (error) {
       console.error("Logout failed:", error)
