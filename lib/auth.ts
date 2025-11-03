@@ -103,22 +103,28 @@ export const authConfig: NextAuthConfig = {
             
             await User.create(newUserData)
 
-            // Log activity for new user
-            const { createActivityLog } = await import("@/lib/activity")
-            const newUser = await User.findOne({ email: user.email })
-            if (newUser) {
-              await createActivityLog({
-                userId: newUser._id.toString(),
-                action: "user.signup",
-                description: `${user.name} signed up with ${account.provider}`,
-              })
+            // Log activity for new user (but don't fail login if this fails)
+            try {
+              const { createActivityLog } = await import("@/lib/activity")
+              const newUser = await User.findOne({ email: user.email })
+              if (newUser) {
+                await createActivityLog({
+                  userId: newUser._id.toString(),
+                  action: "user.signup",
+                  description: `${user.name} signed up with ${account.provider}`,
+                })
+              }
+            } catch (activityError) {
+              console.error("Failed to log activity:", activityError)
+              // Continue anyway - don't block login
             }
           }
           
           return true
         } catch (error) {
           console.error(`Error in ${account.provider} sign-in:`, error)
-          return false
+          // Return true anyway to allow login - database issues shouldn't block OAuth
+          return true
         }
       }
       
