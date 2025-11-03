@@ -3,6 +3,8 @@
 import { motion } from "framer-motion"
 import { Button } from "./ui/button"
 import { Check, ArrowRight } from "lucide-react"
+import { useRazorpay } from "@/hooks/use-razorpay"
+import { useState } from "react"
 
 const pricingPlans = [
   {
@@ -55,6 +57,21 @@ const pricingPlans = [
 ]
 
 export function PricingSection() {
+  const { initiatePayment, loading } = useRazorpay()
+  const [processingPlan, setProcessingPlan] = useState<string | null>(null)
+
+  const handleGetStarted = async (planName: string) => {
+    if (planName === "Enterprise") {
+      // Contact sales for enterprise
+      window.location.href = "mailto:sales@cloudsyncai.com?subject=Enterprise Plan Inquiry"
+      return
+    }
+
+    setProcessingPlan(planName.toLowerCase())
+    await initiatePayment(planName.toLowerCase())
+    setProcessingPlan(null)
+  }
+
   return (
     <section id="pricing" className="py-12 sm:py-16 md:py-20 px-4 bg-black">
       <div className="container mx-auto">
@@ -111,7 +128,7 @@ export function PricingSection() {
               <ul className="space-y-4 mb-8">
                 {plan.features.map((feature, featureIndex) => (
                   <li key={featureIndex} className="flex items-center text-gray-300">
-                    <Check className="h-5 w-5 text-white mr-3 flex-shrink-0" />
+                    <Check className="h-5 w-5 text-white mr-3 shrink-0" />
                     {feature}
                   </li>
                 ))}
@@ -124,9 +141,20 @@ export function PricingSection() {
                     : "bg-transparent border border-white/20 text-white hover:bg-white/10"
                 } group`}
                 size="lg"
+                onClick={() => handleGetStarted(plan.name)}
+                disabled={loading && processingPlan === plan.name.toLowerCase()}
               >
-                {plan.name === "Enterprise" ? "Contact Sales" : "Get Started"}
-                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                {loading && processingPlan === plan.name.toLowerCase() ? (
+                  <>
+                    <span className="animate-spin mr-2">⏳</span>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    {plan.name === "Enterprise" ? "Contact Sales" : "Get Started"}
+                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
               </Button>
             </motion.div>
           ))}

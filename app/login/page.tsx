@@ -8,6 +8,7 @@ import { LeLoLogo } from "@/components/lelo-logo"
 import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
 import { GoogleSignInButton } from "@/components/google-signin-button"
+import { GitHubSignInButton } from "@/components/github-signin-button"
 
 export default function LoginPage() {
   const { login } = useAuth()
@@ -127,8 +128,11 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Google Sign-In Button */}
-          <GoogleSignInButton text="Sign in with Google" />
+          {/* OAuth Sign-In Buttons */}
+          <div className="space-y-3">
+            <GoogleSignInButton text="Sign in with Google" />
+            <GitHubSignInButton text="Sign in with GitHub" />
+          </div>
 
           {/* Sign Up Link */}
           <div className="mt-6 text-center">

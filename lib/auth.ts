@@ -1,5 +1,6 @@
 import NextAuth from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
+import GitHubProvider from "next-auth/providers/github"
 import CredentialsProvider from "next-auth/providers/credentials"
 import type { NextAuthConfig } from "next-auth"
 import dbConnect from "@/lib/db"
@@ -18,6 +19,10 @@ export const authConfig: NextAuthConfig = {
           response_type: "code"
         }
       }
+    }),
+    GitHubProvider({
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
     }),
     CredentialsProvider({
       name: "credentials",
@@ -58,7 +63,7 @@ export const authConfig: NextAuthConfig = {
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (account?.provider === "google") {
+      if (account?.provider === "google" || account?.provider === "github") {
         try {
           await dbConnect()
           
@@ -66,24 +71,37 @@ export const authConfig: NextAuthConfig = {
           const existingUser = await User.findOne({ email: user.email })
           
           if (existingUser) {
-            // Update existing user with Google info if not already set
-            if (!existingUser.googleId) {
+            // Update existing user with OAuth info if not already set
+            if (account.provider === "google" && !existingUser.googleId) {
               existingUser.googleId = account.providerAccountId
               existingUser.provider = "google"
+              existingUser.image = user.image
+              existingUser.emailVerified = new Date()
+              await existingUser.save()
+            } else if (account.provider === "github" && !existingUser.githubId) {
+              existingUser.githubId = account.providerAccountId
+              existingUser.provider = "github"
               existingUser.image = user.image
               existingUser.emailVerified = new Date()
               await existingUser.save()
             }
           } else {
             // Create new user
-            await User.create({
+            const newUserData: any = {
               name: user.name,
               email: user.email,
-              googleId: account.providerAccountId,
-              provider: "google",
+              provider: account.provider,
               image: user.image,
               emailVerified: new Date(),
-            })
+            }
+            
+            if (account.provider === "google") {
+              newUserData.googleId = account.providerAccountId
+            } else if (account.provider === "github") {
+              newUserData.githubId = account.providerAccountId
+            }
+            
+            await User.create(newUserData)
 
             // Log activity for new user
             const { createActivityLog } = await import("@/lib/activity")
@@ -92,14 +110,14 @@ export const authConfig: NextAuthConfig = {
               await createActivityLog({
                 userId: newUser._id.toString(),
                 action: "user.signup",
-                description: `${user.name} signed up with Google`,
+                description: `${user.name} signed up with ${account.provider}`,
               })
             }
           }
           
           return true
         } catch (error) {
-          console.error("Error in Google sign-in:", error)
+          console.error(`Error in ${account.provider} sign-in:`, error)
           return false
         }
       }
@@ -137,7 +155,19 @@ export const authConfig: NextAuthConfig = {
     strategy: "jwt",
     maxAge: 7 * 24 * 60 * 60, // 7 days
   },
+  cookies: {
+    sessionToken: {
+      name: `${process.env.NODE_ENV === 'production' ? '__Secure-' : ''}next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+  },
   secret: process.env.NEXTAUTH_SECRET,
+  trustHost: true,
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig)

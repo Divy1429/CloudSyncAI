@@ -1,12 +1,14 @@
 "use client"
 
-import React, { createContext, useContext, useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react"
+import { useRouter, usePathname } from "next/navigation"
+import { useSession, signOut as nextAuthSignOut } from "next-auth/react"
 
 interface User {
   id: string
   name: string
   email: string
+  image?: string
   createdAt?: string
 }
 
@@ -24,16 +26,29 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
   const router = useRouter()
+  const pathname = usePathname()
+  const { data: session, status } = useSession()
 
-  // Fetch current user on mount
+  // Set mounted on client side only
   useEffect(() => {
-    refreshUser()
+    setMounted(true)
   }, [])
 
-  const refreshUser = async () => {
+  // Check if we're on a protected route
+  const isProtectedRoute = pathname?.startsWith('/dashboard')
+
+  const refreshUser = useCallback(async () => {
+    if (!mounted) {
+      setLoading(false)
+      return
+    }
+    
     try {
-      const response = await fetch("/api/user/me")
+      const response = await fetch("/api/user/me", {
+        credentials: 'include'
+      })
       if (response.ok) {
         const data = await response.json()
         setUser(data.user)
@@ -41,12 +56,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null)
       }
     } catch (error) {
-      console.error("Failed to fetch user:", error)
+      // Silently fail - user is just not authenticated via JWT
       setUser(null)
     } finally {
       setLoading(false)
     }
-  }
+  }, [mounted])
+
+  // Sync NextAuth session with user state
+  useEffect(() => {
+    if (!mounted) return
+
+    if (status === "loading") {
+      setLoading(true)
+      return
+    }
+
+    if (status === "authenticated" && session?.user) {
+      // User logged in via NextAuth (Google)
+      setUser({
+        id: session.user.id || "",
+        name: session.user.name || "",
+        email: session.user.email || "",
+        image: session.user.image || undefined,
+      })
+      setLoading(false)
+    } else if (status === "unauthenticated") {
+      // Only check JWT token if on protected route
+      if (isProtectedRoute) {
+        refreshUser()
+      } else {
+        setUser(null)
+        setLoading(false)
+      }
+    }
+  }, [mounted, session, status, isProtectedRoute, refreshUser])
 
   const login = async (email: string, password: string) => {
     const response = await fetch("/api/auth/login", {
@@ -84,6 +128,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
+      // Check if user is logged in via NextAuth
+      if (session) {
+        await nextAuthSignOut({ redirect: false })
+      }
+      
+      // Also clear JWT token
       await fetch("/api/auth/logout", { method: "POST" })
       setUser(null)
       router.push("/login")

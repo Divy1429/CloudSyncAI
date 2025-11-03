@@ -6,6 +6,7 @@ export interface IUser extends Document {
   password?: string
   provider?: string
   googleId?: string
+  githubId?: string
   image?: string
   emailVerified?: Date
   createdAt: Date
@@ -31,10 +32,15 @@ const UserSchema: Schema = new Schema({
   },
   provider: {
     type: String,
-    enum: ["credentials", "google"],
+    enum: ["credentials", "google", "github"],
     default: "credentials",
   },
   googleId: {
+    type: String,
+    unique: true,
+    sparse: true, // Allows multiple null values
+  },
+  githubId: {
     type: String,
     unique: true,
     sparse: true, // Allows multiple null values

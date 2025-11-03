@@ -6,14 +6,13 @@ import { ProgressiveBlur } from "./ui/progressive-blur"
 
 export function HeroSection() {
   return (
-    <section className="py-12 sm:py-16 md:py-20 px-4 relative overflow-hidden min-h-screen flex flex-col justify-between">
-      <div className="flex-1 flex items-start justify-center pt-12 sm:pt-16 md:pt-20">
-        <ParticleTextEffect words={["CloudSync AI", "AUTOMATION", "INTELLIGENCE", "SYNC"]} />
-      </div>
+    <section className="py-12 items-center justify-center sm:py-16 md:py-20 px-4 relative overflow-hidden min-h-screen flex flex-col bg-black">
+      {/* Background particle animation */}
+      <ParticleTextEffect words={["CloudSync AI", "AUTOMATION", "INTELLIGENCE", "SYNC"]} />
 
-      <div className="container mx-auto text-center relative z-10 pb-6 sm:pb-8">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-4 sm:mb-6 text-balance">
+      <div className="container mx-auto text-center relative z-20 pb-6 sm:pb-8 flex-1 flex flex-col items-center justify-center  justify-center">
+        <div className="max-w-4xl mx-auto mt-50 px-4 sm:px-6">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-4 sm:mb-6 text-center">
             Sync your data, <span className="text-gray-300">automate your workflow</span>
           </h2>
 
