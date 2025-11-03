@@ -68,15 +68,24 @@ export async function POST(request: NextRequest) {
     // Set HTTP-only cookie for security
     // Using Next.js cookie API for proper Vercel deployment
     const isProduction = process.env.NODE_ENV === "production"
-    response.cookies.set({
+    const cookieOptions = {
       name: "auth-token",
       value: token,
       httpOnly: true,
       secure: isProduction,
-      sameSite: "lax",
+      sameSite: "lax" as const,
       maxAge: 60 * 60 * 24 * 7, // 7 days
       path: "/",
+    }
+    
+    console.log('[/api/auth/login] Setting cookie:', { 
+      hasToken: !!token, 
+      tokenLength: token.length,
+      isProduction,
+      cookieOptions: { ...cookieOptions, value: '[REDACTED]' }
     })
+    
+    response.cookies.set(cookieOptions)
 
     return response
   } catch (error: any) {

@@ -4,8 +4,13 @@ import { auth } from "@/lib/auth"
 
 export async function GET(request: NextRequest) {
   try {
+    // Debug: Log all cookies
+    const allCookies = request.cookies.getAll()
+    console.log('[/api/user/me] Cookies:', allCookies.map(c => ({ name: c.name, hasValue: !!c.value })))
+    
     // First, try to get user from NextAuth session
     const session = await auth()
+    console.log('[/api/user/me] Session:', { hasSession: !!session, userId: session?.user?.id })
     
     if (session?.user) {
       // User is authenticated via NextAuth (Google OAuth)
@@ -35,8 +40,10 @@ export async function GET(request: NextRequest) {
     
     // If no NextAuth session, try JWT token (credentials login)
     const token = request.cookies.get("auth-token")?.value
+    console.log('[/api/user/me] JWT Token:', { hasToken: !!token, tokenLength: token?.length })
 
     if (!token) {
+      console.log('[/api/user/me] No token found, returning 401')
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
     }
 
