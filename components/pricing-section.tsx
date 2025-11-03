@@ -4,7 +4,8 @@ import { motion } from "framer-motion"
 import { Button } from "./ui/button"
 import { Check, ArrowRight } from "lucide-react"
 import { useRazorpay } from "@/hooks/use-razorpay"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useAuth } from "@/contexts/AuthContext"
 
 const pricingPlans = [
   {
@@ -59,6 +60,21 @@ const pricingPlans = [
 export function PricingSection() {
   const { initiatePayment, loading } = useRazorpay()
   const [processingPlan, setProcessingPlan] = useState<string | null>(null)
+  const { user } = useAuth()
+
+  // Check for pending plan after user logs in
+  useEffect(() => {
+    if (user) {
+      const pendingPlan = localStorage.getItem("pending_plan")
+      if (pendingPlan) {
+        localStorage.removeItem("pending_plan")
+        // Wait a bit for everything to load
+        setTimeout(() => {
+          handleGetStarted(pendingPlan.charAt(0).toUpperCase() + pendingPlan.slice(1))
+        }, 1000)
+      }
+    }
+  }, [user])
 
   const handleGetStarted = async (planName: string) => {
     if (planName === "Enterprise") {

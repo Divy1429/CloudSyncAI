@@ -106,7 +106,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     setUser(data.user)
-    router.push("/dashboard")
+    
+    // Check for redirect URL in query params
+    const urlParams = new URLSearchParams(window.location.search)
+    const redirect = urlParams.get("redirect")
+    
+    if (redirect && redirect !== "/login" && redirect !== "/signup") {
+      router.push(redirect)
+    } else {
+      router.push("/dashboard")
+    }
   }
 
   const signup = async (name: string, email: string, password: string, confirmPassword: string) => {
@@ -123,7 +132,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     setUser(data.user)
-    router.push("/dashboard")
+    
+    // Check for redirect URL in query params
+    const urlParams = new URLSearchParams(window.location.search)
+    const redirect = urlParams.get("redirect")
+    
+    if (redirect && redirect !== "/login" && redirect !== "/signup") {
+      router.push(redirect)
+    } else {
+      router.push("/dashboard")
+    }
   }
 
   const logout = async () => {

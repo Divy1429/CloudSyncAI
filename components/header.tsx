@@ -4,13 +4,38 @@ import { useState, useEffect } from "react"
 import { LeLoLogo } from "./lelo-logo"
 import { Button } from "./ui/button"
 import Link from "next/link"
-import { Menu, X } from "lucide-react"
+import { Menu, X, User, LogOut } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu"
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { user, logout } = useAuth()
+
+  const handleLogout = async () => {
+    await logout()
+    setIsMobileMenuOpen(false)
+  }
+
+  const getUserInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -94,19 +119,66 @@ export function Header() {
           </nav>
 
           <div className="hidden md:flex items-center gap-1 md:gap-2 lg:gap-3 shrink-0 ml-auto">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs md:text-sm lg:text-base text-foreground/80 hover:text-foreground hover:bg-foreground/10 transition-all duration-200 rounded-xl px-2 md:px-3 lg:px-4"
-            >
-              <Link href="/login">Sign In</Link>
-            </Button>
-            <Button
-              size="sm"
-              className="text-xs md:text-sm lg:text-base bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 rounded-xl whitespace-nowrap px-2 md:px-3 lg:px-4"
-            >
-              <Link href="/signup">Get Started</Link>
-            </Button>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="flex items-center gap-2 h-9 px-2 rounded-xl hover:bg-foreground/10"
+                  >
+                    <Avatar className="h-7 w-7">
+                      <AvatarImage src={user.image} alt={user.name} />
+                      <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                        {getUserInitials(user.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-medium hidden lg:block">{user.name}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user.name}</p>
+                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard" className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/profile" className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs md:text-sm lg:text-base text-foreground/80 hover:text-foreground hover:bg-foreground/10 transition-all duration-200 rounded-xl px-2 md:px-3 lg:px-4"
+                >
+                  <Link href="/login">Sign In</Link>
+                </Button>
+                <Button
+                  size="sm"
+                  className="text-xs md:text-sm lg:text-base bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 rounded-xl whitespace-nowrap px-2 md:px-3 lg:px-4"
+                >
+                  <Link href="/signup">Get Started</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -138,12 +210,52 @@ export function Header() {
             Testimonials
           </a>
           <div className="flex flex-col gap-2 pt-2 border-t border-border/40">
-            <Button variant="ghost" size="sm" className="w-full justify-center">
-              <Link href="/login">Sign In</Link>
-            </Button>
-            <Button size="sm" className="w-full justify-center bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Link href="/signup">Get Started</Link>
-            </Button>
+            {user ? (
+              <>
+                <div className="flex items-center gap-3 px-3 py-2 bg-foreground/5 rounded-lg">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={user.image} alt={user.name} />
+                    <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                      {getUserInitials(user.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{user.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                  </div>
+                </div>
+                <Button variant="ghost" size="sm" className="w-full justify-start" asChild>
+                  <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+                    <User className="mr-2 h-4 w-4" />
+                    Dashboard
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" className="w-full justify-start" asChild>
+                  <Link href="/dashboard/profile" onClick={() => setIsMobileMenuOpen(false)}>
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </Link>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" className="w-full justify-center">
+                  <Link href="/login">Sign In</Link>
+                </Button>
+                <Button size="sm" className="w-full justify-center bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Link href="/signup">Get Started</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       )}

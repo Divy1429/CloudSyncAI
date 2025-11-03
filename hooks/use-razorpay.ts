@@ -49,7 +49,10 @@ export function useRazorpay() {
   const initiatePayment = async (plan: string) => {
     if (!user) {
       setError("Please login to subscribe")
-      router.push("/login")
+      // Save the intended plan to localStorage
+      localStorage.setItem("pending_plan", plan)
+      // Redirect to login with return URL
+      router.push("/login?redirect=/#pricing")
       return
     }
 
