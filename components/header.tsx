@@ -90,32 +90,32 @@ export function Header() {
 
           {/* Desktop navigation */}
           <nav className="hidden md:flex items-center gap-2 md:gap-3 lg:gap-6 flex-1 justify-center min-w-0">
-            <a
-              href="#features"
+            <Link
+              href="/#features"
               className="relative text-xs md:text-sm lg:text-base text-foreground/80 hover:text-foreground transition-all duration-300 group px-1 md:px-2 lg:px-3 py-1 rounded-lg hover:bg-foreground/5 whitespace-nowrap"
             >
               Features
               <span className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-primary transition-all duration-200 group-hover:w-4"></span>
-            </a>
-            <a
-              href="#pricing"
+            </Link>
+            <Link
+              href="/#pricing"
               className="relative text-xs md:text-sm lg:text-base text-foreground/80 hover:text-foreground transition-all duration-300 group px-1 md:px-2 lg:px-3 py-1 rounded-lg hover:bg-foreground/5 whitespace-nowrap"
             >
               Pricing
               <span className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-primary transition-all duration-200 group-hover:w-4"></span>
-            </a>
-            <a
-              href="#about"
+            </Link>
+            <Link
+              href="/#about"
               className="relative text-xs md:text-sm lg:text-base text-foreground/80 hover:text-foreground transition-all duration-300 group px-1 md:px-2 lg:px-3 py-1 rounded-lg hover:bg-foreground/5 whitespace-nowrap"
             >
               About
-            </a>
-            <a
-              href="#about"
+            </Link>
+            <Link
+              href="/contact"
               className="relative text-xs md:text-sm lg:text-base text-foreground/80 hover:text-foreground transition-all duration-300 group px-1 md:px-2 lg:px-3 py-1 rounded-lg hover:bg-foreground/5 whitespace-nowrap"
             >
-              Testimonials
-            </a>
+              Contact
+            </Link>
           </nav>
 
           <div className="hidden md:flex items-center gap-1 md:gap-2 lg:gap-3 shrink-0 ml-auto">
@@ -185,30 +185,34 @@ export function Header() {
 
       {isMobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 mt-2 bg-background/95 backdrop-blur-lg border border-border/40 rounded-2xl p-4 space-y-3 mx-4">
-          <a
-            href="#features"
+          <Link
+            href="/#features"
             className="block text-foreground/80 hover:text-foreground py-2 px-3 rounded hover:bg-foreground/5"
+            onClick={() => setIsMobileMenuOpen(false)}
           >
             Features
-          </a>
-          <a
-            href="#pricing"
+          </Link>
+          <Link
+            href="/#pricing"
             className="block text-foreground/80 hover:text-foreground py-2 px-3 rounded hover:bg-foreground/5"
+            onClick={() => setIsMobileMenuOpen(false)}
           >
             Pricing
-          </a>
-          <a
-            href="#about"
+          </Link>
+          <Link
+            href="/#about"
             className="block text-foreground/80 hover:text-foreground py-2 px-3 rounded hover:bg-foreground/5"
+            onClick={() => setIsMobileMenuOpen(false)}
           >
             About
-          </a>
-          <a
-            href="#about"
+          </Link>
+          <Link
+            href="/contact"
             className="block text-foreground/80 hover:text-foreground py-2 px-3 rounded hover:bg-foreground/5"
+            onClick={() => setIsMobileMenuOpen(false)}
           >
-            Testimonials
-          </a>
+            Contact
+          </Link>
           <div className="flex flex-col gap-2 pt-2 border-t border-border/40">
             {user ? (
               <>

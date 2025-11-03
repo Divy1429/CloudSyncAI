@@ -47,7 +47,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     try {
       const response = await fetch("/api/user/me", {
-        credentials: 'include'
+        credentials: 'include',
+        cache: 'no-store'
       })
       if (response.ok) {
         const data = await response.json()
@@ -73,7 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (status === "authenticated" && session?.user) {
-      // User logged in via NextAuth (Google)
+      // User logged in via NextAuth (Google/GitHub)
       setUser({
         id: session.user.id || "",
         name: session.user.name || "",
@@ -82,15 +83,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
       setLoading(false)
     } else if (status === "unauthenticated") {
-      // Only check JWT token if on protected route
-      if (isProtectedRoute) {
-        refreshUser()
-      } else {
-        setUser(null)
-        setLoading(false)
-      }
+      // Always check JWT token (for email/password login)
+      refreshUser()
     }
-  }, [mounted, session, status, isProtectedRoute, refreshUser])
+  }, [mounted, session, status, refreshUser])
 
   const login = async (email: string, password: string) => {
     const response = await fetch("/api/auth/login", {
