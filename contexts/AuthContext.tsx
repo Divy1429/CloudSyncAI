@@ -31,9 +31,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { data: session, status } = useSession()
 
-  // Set mounted on client side only
+  // Set mounted on client side only and check auth immediately
   useEffect(() => {
     setMounted(true)
+    // Immediately check for JWT token on mount (before NextAuth loads)
+    const checkInitialAuth = async () => {
+      try {
+        const response = await fetch("/api/user/me", {
+          credentials: 'include',
+          cache: 'no-store'
+        })
+        if (response.ok) {
+          const data = await response.json()
+          if (data.user) {
+            setUser(data.user)
+            setLoading(false)
+          }
+        }
+      } catch (error) {
+        // Silently fail - will be handled by NextAuth check
+      }
+    }
+    checkInitialAuth()
   }, [])
 
   // Check if we're on a protected route
@@ -93,6 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
+      credentials: 'include', // Important: include cookies
     })
 
     const data = await response.json()
@@ -107,7 +127,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const urlParams = new URLSearchParams(window.location.search)
     const redirect = urlParams.get("redirect")
     
-    if (redirect && redirect !== "/login" && redirect !== "/signup") {
+    // If redirect is to home page with hash, use window.location for proper hash navigation
+    if (redirect && redirect.includes('#')) {
+      window.location.href = redirect
+    } else if (redirect && redirect !== "/login" && redirect !== "/signup") {
       router.push(redirect)
     } else {
       router.push("/dashboard")
@@ -119,6 +142,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password, confirmPassword }),
+      credentials: 'include', // Important: include cookies
     })
 
     const data = await response.json()
@@ -133,7 +157,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const urlParams = new URLSearchParams(window.location.search)
     const redirect = urlParams.get("redirect")
     
-    if (redirect && redirect !== "/login" && redirect !== "/signup") {
+    // If redirect is to home page with hash, use window.location for proper hash navigation
+    if (redirect && redirect.includes('#')) {
+      window.location.href = redirect
+    } else if (redirect && redirect !== "/login" && redirect !== "/signup") {
       router.push(redirect)
     } else {
       router.push("/dashboard")
