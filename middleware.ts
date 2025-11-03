@@ -15,6 +15,14 @@ export function middleware(request: NextRequest) {
   const nextAuthToken = request.cookies.get("next-auth.session-token")?.value || 
                        request.cookies.get("__Secure-next-auth.session-token")?.value
   
+  // Debug logging (remove after fixing)
+  console.log('[Middleware]', {
+    pathname,
+    hasJWT: !!jwtToken,
+    hasNextAuth: !!nextAuthToken,
+    cookies: request.cookies.getAll().map(c => c.name)
+  })
+  
   // User is authenticated if either token exists
   const isAuthenticated = !!(jwtToken || nextAuthToken)
   
