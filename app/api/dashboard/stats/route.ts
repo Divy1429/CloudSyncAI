@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
-import { verifyToken } from "@/lib/jwt"
+import { getAuthenticatedUserId } from "@/lib/auth-helper"
 
 export async function GET(request: NextRequest) {
   try {
-    const token = request.cookies.get("auth-token")?.value
+    const userId = await getAuthenticatedUserId(request)
 
-    if (!token) {
+    if (!userId) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
-    }
-
-    const decoded = verifyToken(token)
-
-    if (!decoded) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 })
     }
 
     const { default: dbConnect } = await import("@/lib/db")
@@ -23,31 +17,31 @@ export async function GET(request: NextRequest) {
     await dbConnect()
 
     // Get workflow statistics
-    const totalWorkflows = await Workflow.countDocuments({ userId: decoded.userId })
-    const activeWorkflows = await Workflow.countDocuments({ userId: decoded.userId, status: "active" })
-    const pausedWorkflows = await Workflow.countDocuments({ userId: decoded.userId, status: "paused" })
-    const draftWorkflows = await Workflow.countDocuments({ userId: decoded.userId, status: "draft" })
+    const totalWorkflows = await Workflow.countDocuments({ userId })
+    const activeWorkflows = await Workflow.countDocuments({ userId, status: "active" })
+    const pausedWorkflows = await Workflow.countDocuments({ userId, status: "paused" })
+    const draftWorkflows = await Workflow.countDocuments({ userId, status: "draft" })
 
     // Get total runs and success rate
-    const workflows = await Workflow.find({ userId: decoded.userId })
+    const workflows = await Workflow.find({ userId })
     const totalRuns = workflows.reduce((sum, w) => sum + (w.runCount || 0), 0)
     const totalSuccess = workflows.reduce((sum, w) => sum + (w.successCount || 0), 0)
     const totalFailures = workflows.reduce((sum, w) => sum + (w.failureCount || 0), 0)
     const successRate = totalRuns > 0 ? ((totalSuccess / totalRuns) * 100).toFixed(1) : 0
 
     // Get integration statistics
-    const totalIntegrations = await Integration.countDocuments({ userId: decoded.userId })
+    const totalIntegrations = await Integration.countDocuments({ userId })
     const connectedIntegrations = await Integration.countDocuments({
-      userId: decoded.userId,
+      userId,
       status: "connected",
     })
     const disconnectedIntegrations = await Integration.countDocuments({
-      userId: decoded.userId,
+      userId,
       status: "disconnected",
     })
 
     // Get recent activities
-    const recentActivities = await ActivityLog.find({ userId: decoded.userId })
+    const recentActivities = await ActivityLog.find({ userId })
       .sort({ createdAt: -1 })
       .limit(10)
 
@@ -56,7 +50,7 @@ export async function GET(request: NextRequest) {
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
 
     const activityCount = await ActivityLog.countDocuments({
-      userId: decoded.userId,
+      userId,
       createdAt: { $gte: sevenDaysAgo },
     })
 
