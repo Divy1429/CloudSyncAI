@@ -82,10 +82,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Create Razorpay order
+    // Receipt must be max 40 characters - use short format
+    const timestamp = Date.now().toString().slice(-8) // Last 8 digits
+    const userIdShort = userId.slice(-8) // Last 8 chars of userId
+    const receipt = `ord_${userIdShort}_${timestamp}` // Format: ord_12345678_12345678 (max 28 chars)
+    
     const options = {
       amount: selectedPlan.amount,
       currency: selectedPlan.currency,
-      receipt: `order_${userId}_${Date.now()}`,
+      receipt: receipt,
       notes: {
         userId: userId,
         plan: plan,
