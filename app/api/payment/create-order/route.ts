@@ -14,7 +14,7 @@ const razorpay = new Razorpay({
 const PLANS = {
   starter: {
     name: "Starter",
-    amount: 4900, // ₹49 in paise (Razorpay uses smallest currency unit)
+    amount: 100, // ₹1 in paise (Razorpay uses smallest currency unit)
     currency: "INR",
     period: "monthly",
   },
