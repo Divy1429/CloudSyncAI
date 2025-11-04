@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import Razorpay from "razorpay"
-import { auth } from "@/lib/auth"
 import dbConnect from "@/lib/db"
 import User from "@/models/User"
-import { verifyToken } from "@/lib/jwt"
+import { getAuthenticatedUserId } from "@/lib/auth-helper"
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID!,
@@ -34,23 +33,7 @@ const PLANS = {
 
 export async function POST(request: NextRequest) {
   try {
-    // Get user from session or JWT
-    let userId: string | null = null
-
-    // Try NextAuth session first
-    const session = await auth()
-    if (session?.user) {
-      userId = session.user.id
-    } else {
-      // Try JWT token
-      const token = request.cookies.get("auth-token")?.value
-      if (token) {
-        const decoded = verifyToken(token)
-        if (decoded) {
-          userId = decoded.userId
-        }
-      }
-    }
+    const userId = await getAuthenticatedUserId(request)
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
