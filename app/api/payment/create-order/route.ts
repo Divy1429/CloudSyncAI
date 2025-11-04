@@ -110,8 +110,20 @@ export async function POST(request: NextRequest) {
     )
   } catch (error: any) {
     console.error("Razorpay order creation error:", error)
+    console.error("Error details:", {
+      message: error.message,
+      statusCode: error.statusCode,
+      error: error.error,
+      stack: error.stack
+    })
+    
+    // Return detailed error for debugging
     return NextResponse.json(
-      { error: error.message || "Failed to create order" },
+      { 
+        error: error.message || "Failed to create order",
+        details: error.error?.description || error.description || "Unknown error",
+        razorpayError: error.error || null
+      },
       { status: 500 }
     )
   }
