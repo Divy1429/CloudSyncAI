@@ -166,9 +166,14 @@ export const authConfig: NextAuthConfig = {
       name: `${process.env.NODE_ENV === 'production' ? '__Secure-' : ''}next-auth.session-token`,
       options: {
         httpOnly: true,
-        sameSite: 'lax',
+        // Use 'none' for OAuth callback compatibility across providers and redirects
+        // (some browsers enforce stricter cross-site cookie policies on OAuth flows).
+        sameSite: 'none',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
+        // Explicit domain in production can help ensure the cookie is scoped to the Vercel host
+        // (adjust if you use a custom domain). Leave undefined in development.
+        domain: process.env.NODE_ENV === 'production' ? 'cloud-sync-ai.vercel.app' : undefined,
       },
     },
   },
