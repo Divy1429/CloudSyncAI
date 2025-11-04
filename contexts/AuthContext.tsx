@@ -94,21 +94,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (status === "authenticated" && session?.user) {
       // User logged in via NextAuth (Google/GitHub)
-      // Call special callback endpoint to ensure JWT cookie is set
-      // (Workaround for Vercel Edge Runtime not setting cookies in OAuth flow)
+      // CRITICAL: Must call set-oauth-cookie to set JWT token
       const ensureJWTCookie = async () => {
         try {
-          console.log('[AuthContext] OAuth session detected, calling callback-success endpoint')
+          console.log('[AuthContext] 🔐 OAuth session detected - setting JWT cookie')
           
-          const response = await fetch("/api/auth/callback-success", {
+          const response = await fetch("/api/auth/set-oauth-cookie", {
+            method: 'POST',
             credentials: 'include',
-            cache: 'no-store'
+            cache: 'no-store',
+            headers: {
+              'Content-Type': 'application/json'
+            }
           })
+          
+          console.log('[AuthContext] set-oauth-cookie response:', response.status)
           
           if (response.ok) {
             const data = await response.json()
             if (data.user) {
-              console.log('[AuthContext] JWT cookie set successfully for OAuth user')
+              console.log('[AuthContext] ✅ JWT cookie set successfully!')
               setUser(data.user)
               
               // Set auth indicator in localStorage
@@ -117,7 +122,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }
             }
           } else {
-            console.error('[AuthContext] Failed to set JWT cookie:', response.status)
+            const error = await response.json()
+            console.error('[AuthContext] ❌ Failed to set JWT cookie:', response.status, error)
             // Fallback to session data
             setUser({
               id: session.user.id || "",
@@ -127,7 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             })
           }
         } catch (error) {
-          console.error("Failed to ensure JWT cookie:", error)
+          console.error("[AuthContext] ❌ Error ensuring JWT cookie:", error)
           // Fallback to session data
           setUser({
             id: session.user.id || "",
