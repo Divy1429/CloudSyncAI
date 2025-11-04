@@ -128,7 +128,7 @@ export const authConfig: NextAuthConfig = {
         }
       }
       
-      return true
+      return "/auth/callback" // Redirect to custom callback page to set JWT cookie
     },
     async session({ session, token }) {
       console.log('[NextAuth session callback] Called with:', { 
@@ -164,6 +164,8 @@ export const authConfig: NextAuthConfig = {
   pages: {
     signIn: "/login",
     error: "/login",
+    // Redirect to custom callback page after OAuth to set JWT cookie
+    newUser: "/auth/callback",
   },
   session: {
     strategy: "jwt",
