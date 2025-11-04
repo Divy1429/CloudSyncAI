@@ -94,13 +94,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (status === "authenticated" && session?.user) {
       // User logged in via NextAuth (Google/GitHub)
-      setUser({
-        id: session.user.id || "",
-        name: session.user.name || "",
-        email: session.user.email || "",
-        image: session.user.image || undefined,
-      })
-      setLoading(false)
+      // Call /api/user/me to ensure JWT cookie is set
+      const ensureJWTCookie = async () => {
+        try {
+          const response = await fetch("/api/user/me", {
+            credentials: 'include',
+            cache: 'no-store'
+          })
+          
+          if (response.ok) {
+            const data = await response.json()
+            if (data.user) {
+              setUser(data.user)
+            }
+          }
+        } catch (error) {
+          console.error("Failed to ensure JWT cookie:", error)
+          // Fallback to session data
+          setUser({
+            id: session.user.id || "",
+            name: session.user.name || "",
+            email: session.user.email || "",
+            image: session.user.image || undefined,
+          })
+        } finally {
+          setLoading(false)
+        }
+      }
+      
+      ensureJWTCookie()
     } else if (status === "unauthenticated") {
       // Always check JWT token (for email/password login)
       refreshUser()

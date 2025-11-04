@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { verifyToken } from "@/lib/jwt"
+import { verifyToken, generateToken } from "@/lib/jwt"
 import { auth } from "@/lib/auth"
 
 export async function GET(request: NextRequest) {
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     console.log('[/api/user/me] Session:', { hasSession: !!session, userId: session?.user?.id })
     
     if (session?.user) {
-      // User is authenticated via NextAuth (Google OAuth)
+      // User is authenticated via NextAuth (Google/GitHub OAuth)
       const { default: dbConnect } = await import("@/lib/db")
       const { default: User } = await import("@/models/User")
       
@@ -22,7 +22,10 @@ export async function GET(request: NextRequest) {
       const user = await User.findById(session.user.id).select("-password")
       
       if (user) {
-        return NextResponse.json(
+        // Check if JWT cookie exists
+        const hasJWT = request.cookies.has("auth-token")
+        
+        const response = NextResponse.json(
           {
             success: true,
             user: {
@@ -35,6 +38,34 @@ export async function GET(request: NextRequest) {
           },
           { status: 200 }
         )
+        
+        // If OAuth session exists but no JWT cookie, set JWT cookie for consistency
+        if (!hasJWT) {
+          console.log('[/api/user/me] OAuth session found but no JWT cookie - setting JWT cookie')
+          
+          const token = generateToken({
+            userId: user._id.toString(),
+            email: user.email,
+            name: user.name,
+          })
+          
+          const isProduction = process.env.NODE_ENV === 'production'
+          const maxAge = 7 * 24 * 60 * 60 // 7 days
+          
+          const cookieString = [
+            `auth-token=${token}`,
+            'HttpOnly',
+            'Path=/',
+            `Max-Age=${maxAge}`,
+            'SameSite=Lax',
+            isProduction ? 'Secure' : ''
+          ].filter(Boolean).join('; ')
+          
+          response.headers.set('Set-Cookie', cookieString)
+          console.log('[/api/user/me] JWT cookie set for OAuth user')
+        }
+        
+        return response
       }
     }
     
