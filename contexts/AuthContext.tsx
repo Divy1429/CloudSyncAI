@@ -94,10 +94,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (status === "authenticated" && session?.user) {
       // User logged in via NextAuth (Google/GitHub)
-      // Call /api/user/me to ensure JWT cookie is set
+      // Call special callback endpoint to ensure JWT cookie is set
+      // (Workaround for Vercel Edge Runtime not setting cookies in OAuth flow)
       const ensureJWTCookie = async () => {
         try {
-          const response = await fetch("/api/user/me", {
+          console.log('[AuthContext] OAuth session detected, calling callback-success endpoint')
+          
+          const response = await fetch("/api/auth/callback-success", {
             credentials: 'include',
             cache: 'no-store'
           })
@@ -105,8 +108,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (response.ok) {
             const data = await response.json()
             if (data.user) {
+              console.log('[AuthContext] JWT cookie set successfully for OAuth user')
               setUser(data.user)
+              
+              // Set auth indicator in localStorage
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('auth_check', 'true')
+              }
             }
+          } else {
+            console.error('[AuthContext] Failed to set JWT cookie:', response.status)
+            // Fallback to session data
+            setUser({
+              id: session.user.id || "",
+              name: session.user.name || "",
+              email: session.user.email || "",
+              image: session.user.image || undefined,
+            })
           }
         } catch (error) {
           console.error("Failed to ensure JWT cookie:", error)

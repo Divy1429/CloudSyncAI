@@ -131,6 +131,12 @@ export const authConfig: NextAuthConfig = {
       return true
     },
     async session({ session, token }) {
+      console.log('[NextAuth session callback] Called with:', { 
+        hasSession: !!session, 
+        hasToken: !!token,
+        tokenSub: token?.sub 
+      })
+      
       if (token && session.user) {
         session.user.id = token.sub as string
         
@@ -142,6 +148,8 @@ export const authConfig: NextAuthConfig = {
           session.user.name = user.name
           session.user.email = user.email
           session.user.image = user.image
+          
+          console.log('[NextAuth session callback] Session prepared for user:', user.email)
         }
       }
       return session
