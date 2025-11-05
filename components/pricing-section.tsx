@@ -2,10 +2,12 @@
 
 import { motion } from "framer-motion"
 import { Button } from "./ui/button"
-import { Check, ArrowRight } from "lucide-react"
+import { Check, ArrowRight, Crown } from "lucide-react"
 import { useRazorpay } from "@/hooks/use-razorpay"
 import { useState, useEffect } from "react"
 import { useAuth } from "@/contexts/AuthContext"
+import { PaymentSuccessDialog } from "./payment-success-dialog"
+import { Badge } from "./ui/badge"
 
 const pricingPlans = [
   {
@@ -58,9 +60,35 @@ const pricingPlans = [
 ]
 
 export function PricingSection() {
-  const { initiatePayment, loading } = useRazorpay()
+  const {
+    initiatePayment,
+    loading,
+    showSuccessDialog,
+    setShowSuccessDialog,
+    successPlan,
+  } = useRazorpay()
   const [processingPlan, setProcessingPlan] = useState<string | null>(null)
+  const [userSubscription, setUserSubscription] = useState<{
+    plan: string
+    status: string
+  } | null>(null)
   const { user } = useAuth()
+
+  // Fetch user's subscription
+  useEffect(() => {
+    if (user) {
+      fetch("/api/user/me")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.subscription && data.subscription.status === "active") {
+            setUserSubscription(data.subscription)
+          }
+        })
+        .catch(() => {
+          // Ignore errors
+        })
+    }
+  }, [user, showSuccessDialog]) // Refetch when dialog closes
 
   // Check for pending plan after user logs in
   useEffect(() => {
@@ -132,6 +160,15 @@ export function PricingSection() {
                 </div>
               )}
 
+              {userSubscription?.plan === plan.name.toLowerCase() && (
+                <div className="absolute -top-4 right-4">
+                  <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border-0">
+                    <Crown className="w-3 h-3 mr-1" />
+                    Current Plan
+                  </Badge>
+                </div>
+              )}
+
               <div className="text-center mb-8">
                 <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
                 <div className="mb-4">
@@ -158,13 +195,18 @@ export function PricingSection() {
                 } group`}
                 size="lg"
                 onClick={() => handleGetStarted(plan.name)}
-                disabled={loading && processingPlan === plan.name.toLowerCase()}
+                disabled={
+                  (loading && processingPlan === plan.name.toLowerCase()) ||
+                  userSubscription?.plan === plan.name.toLowerCase()
+                }
               >
                 {loading && processingPlan === plan.name.toLowerCase() ? (
                   <>
                     <span className="animate-spin mr-2">⏳</span>
                     Processing...
                   </>
+                ) : userSubscription?.plan === plan.name.toLowerCase() ? (
+                  "Active"
                 ) : (
                   <>
                     {plan.name === "Enterprise" ? "Contact Sales" : "Get Started"}
@@ -192,6 +234,13 @@ export function PricingSection() {
           </p>
         </motion.div>
       </div>
+
+      {/* Payment Success Dialog */}
+      <PaymentSuccessDialog
+        open={showSuccessDialog}
+        onOpenChange={setShowSuccessDialog}
+        plan={successPlan}
+      />
     </section>
   )
 }

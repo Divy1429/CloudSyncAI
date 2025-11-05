@@ -9,6 +9,13 @@ export interface IUser extends Document {
   githubId?: string
   image?: string
   emailVerified?: Date
+  subscription?: {
+    plan: string
+    status: string
+    startDate: Date
+    endDate?: Date
+    razorpaySubscriptionId?: string
+  }
   createdAt: Date
 }
 
@@ -50,6 +57,26 @@ const UserSchema: Schema = new Schema({
   },
   emailVerified: {
     type: Date,
+  },
+  subscription: {
+    plan: {
+      type: String,
+      enum: ["starter", "professional", "enterprise"],
+    },
+    status: {
+      type: String,
+      enum: ["active", "cancelled", "expired"],
+      default: "active",
+    },
+    startDate: {
+      type: Date,
+    },
+    endDate: {
+      type: Date,
+    },
+    razorpaySubscriptionId: {
+      type: String,
+    },
   },
   createdAt: {
     type: Date,

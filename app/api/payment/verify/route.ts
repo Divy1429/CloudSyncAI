@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
 
     // Connect to database
     await dbConnect()
+    const User = (await import("@/models/User")).default
 
     // Calculate subscription dates
     const startDate = new Date()
@@ -67,6 +68,17 @@ export async function POST(request: NextRequest) {
       },
       { upsert: true, new: true }
     )
+
+    // Update user's subscription info
+    await User.findByIdAndUpdate(userId, {
+      subscription: {
+        plan,
+        status: "active",
+        startDate,
+        endDate,
+        razorpaySubscriptionId: subscription._id.toString(),
+      },
+    })
 
     // Log activity
     await createActivityLog({

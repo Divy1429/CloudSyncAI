@@ -28,6 +28,8 @@ declare global {
 export function useRazorpay() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+  const [successPlan, setSuccessPlan] = useState("")
   const { user } = useAuth()
   const router = useRouter()
 
@@ -105,9 +107,9 @@ export function useRazorpay() {
             const verifyData = await verifyResponse.json()
 
             if (verifyResponse.ok) {
-              // Payment successful
-              alert("Payment successful! Your subscription is now active.")
-              router.push("/dashboard")
+              // Payment successful - show success dialog
+              setSuccessPlan(plan)
+              setShowSuccessDialog(true)
             } else {
               throw new Error(verifyData.error || "Payment verification failed")
             }
@@ -142,5 +144,12 @@ export function useRazorpay() {
     }
   }
 
-  return { initiatePayment, loading, error }
+  return {
+    initiatePayment,
+    loading,
+    error,
+    showSuccessDialog,
+    setShowSuccessDialog,
+    successPlan,
+  }
 }

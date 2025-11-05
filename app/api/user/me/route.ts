@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
           image: user.image,
           createdAt: user.createdAt,
         },
+        subscription: user.subscription || null,
       },
       { status: 200 },
     )
