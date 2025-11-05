@@ -120,48 +120,59 @@ export function Header() {
 
           <div className="hidden md:flex items-center gap-1 md:gap-2 lg:gap-3 shrink-0 ml-auto">
             {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="flex items-center gap-2 h-9 px-2 rounded-xl hover:bg-foreground/10"
-                  >
-                    <Avatar className="h-7 w-7">
-                      <AvatarImage src={user.image} alt={user.name} />
-                      <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                        {getUserInitials(user.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm font-medium hidden lg:block">{user.name}</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{user.name}</p>
-                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard" className="cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
-                      Dashboard
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard/profile" className="cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
-                      Profile
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="flex items-center gap-2 h-9 px-2 rounded-xl hover:bg-foreground/10"
+                    >
+                      <Avatar className="h-7 w-7">
+                        <AvatarImage src={user.image} alt={user.name} />
+                        <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                          {getUserInitials(user.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium hidden lg:block">{user.name}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user.name}</p>
+                        <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard" className="cursor-pointer">
+                        <User className="mr-2 h-4 w-4" />
+                        Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard/profile" className="cursor-pointer">
+                        <User className="mr-2 h-4 w-4" />
+                        Profile
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="text-xs md:text-sm text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all duration-200 rounded-xl px-2 md:px-3 lg:px-4"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  <span className="hidden lg:inline">Logout</span>
+                </Button>
+              </>
             ) : (
               <>
                 <Button
