@@ -10,7 +10,7 @@ interface GitHubSignInButtonProps {
 }
 
 export function GitHubSignInButton({ 
-  callbackUrl = "/dashboard",
+  callbackUrl = "/",
   text = "Continue with GitHub" 
 }: GitHubSignInButtonProps) {
   const handleGitHubSignIn = async () => {

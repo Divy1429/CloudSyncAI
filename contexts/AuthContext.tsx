@@ -170,7 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else if (redirect && redirect !== "/login" && redirect !== "/signup") {
       router.push(redirect)
     } else {
-      router.push("/dashboard")
+      router.push("/")
     }
   }
 
@@ -205,7 +205,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else if (redirect && redirect !== "/login" && redirect !== "/signup") {
       router.push(redirect)
     } else {
-      router.push("/dashboard")
+      router.push("/")
     }
   }
 

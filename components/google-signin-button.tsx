@@ -9,7 +9,7 @@ interface GoogleSignInButtonProps {
 }
 
 export function GoogleSignInButton({ 
-  callbackUrl = "/dashboard",
+  callbackUrl = "/",
   text = "Continue with Google" 
 }: GoogleSignInButtonProps) {
   const handleGoogleSignIn = async () => {
