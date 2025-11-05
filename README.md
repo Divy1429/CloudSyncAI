@@ -1,4 +1,4 @@
-# CloudSyncAI Platform# CloudSyncAI Platform
+CloudSyncAI Platform :
 
 
 
@@ -6,7 +6,7 @@
 
 
 
-**AI-Powered Workflow Automation & Multi-Cloud Data Synchronization Platform**![Next.js](https://img.shields.io/badge/Next.js-14.2.25-black)
+**AI-Powered Workflow Automation & Multi-Cloud Data Synchronization Platform**
 
 ![React](https://img.shields.io/badge/React-19-blue)
 
@@ -865,3 +865,4 @@ This project is **private and proprietary**. All rights reserved.
 [Live Demo](https://cloud-sync-ai.vercel.app) • [Report Bug](https://github.com/Divy1429/CloudSyncAI/issues) • [Request Feature](https://github.com/Divy1429/CloudSyncAI/issues)
 
 </div>
+
