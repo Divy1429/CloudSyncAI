@@ -94,59 +94,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (status === "authenticated" && session?.user) {
       // User logged in via NextAuth (Google/GitHub)
-      // CRITICAL: Must call set-oauth-cookie to set JWT token
-      const ensureJWTCookie = async () => {
+      // Use session data directly and try to set JWT cookie in background
+      console.log('[AuthContext] 🔐 OAuth session detected:', session.user.email)
+      
+      setUser({
+        id: session.user.id || "",
+        name: session.user.name || "",
+        email: session.user.email || "",
+        image: session.user.image || undefined,
+      })
+      setLoading(false)
+      
+      // Try to set JWT cookie in background (non-blocking)
+      const trySetJWTCookie = async () => {
         try {
-          console.log('[AuthContext] 🔐 OAuth session detected - setting JWT cookie')
-          
+          console.log('[AuthContext] Attempting to set JWT cookie...')
           const response = await fetch("/api/auth/set-oauth-cookie", {
             method: 'POST',
             credentials: 'include',
             cache: 'no-store',
-            headers: {
-              'Content-Type': 'application/json'
-            }
           })
-          
-          console.log('[AuthContext] set-oauth-cookie response:', response.status)
           
           if (response.ok) {
             const data = await response.json()
+            console.log('[AuthContext] ✅ JWT cookie set successfully')
+            // Update user with database data
             if (data.user) {
-              console.log('[AuthContext] ✅ JWT cookie set successfully!')
               setUser(data.user)
-              
-              // Set auth indicator in localStorage
-              if (typeof window !== 'undefined') {
-                localStorage.setItem('auth_check', 'true')
-              }
             }
           } else {
-            const error = await response.json()
-            console.error('[AuthContext] ❌ Failed to set JWT cookie:', response.status, error)
-            // Fallback to session data
-            setUser({
-              id: session.user.id || "",
-              name: session.user.name || "",
-              email: session.user.email || "",
-              image: session.user.image || undefined,
-            })
+            console.log('[AuthContext] ⚠️ Could not set JWT cookie (session may have expired)')
+            // Not critical - we have session data
           }
         } catch (error) {
-          console.error("[AuthContext] ❌ Error ensuring JWT cookie:", error)
-          // Fallback to session data
-          setUser({
-            id: session.user.id || "",
-            name: session.user.name || "",
-            email: session.user.email || "",
-            image: session.user.image || undefined,
-          })
-        } finally {
-          setLoading(false)
+          console.error("[AuthContext] ⚠️ Error setting JWT cookie:", error)
+          // Not critical - we have session data
         }
       }
       
-      ensureJWTCookie()
+      trySetJWTCookie()
     } else if (status === "unauthenticated") {
       // Always check JWT token (for email/password login)
       refreshUser()

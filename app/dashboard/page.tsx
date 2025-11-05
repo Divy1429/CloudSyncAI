@@ -44,33 +44,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [loadingStats, setLoadingStats] = useState(true)
 
-  useEffect(() => {
-    // Check if we have OAuth callback cookie but no user data
-    // This means NextAuth session exists but JWT cookie wasn't set
-    const checkAndSetCookie = async () => {
-      if (!user) {
-        console.log('[Dashboard] No user data, checking for OAuth session...')
-        try {
-          const response = await fetch("/api/auth/set-oauth-cookie", {
-            method: 'POST',
-            credentials: 'include',
-          })
-          
-          console.log('[Dashboard] set-oauth-cookie response:', response.status)
-          
-          if (response.ok) {
-            console.log('[Dashboard] ✅ JWT cookie set successfully, reloading...')
-            // Reload to fetch user data with new cookie
-            window.location.reload()
-          }
-        } catch (error) {
-          console.error('[Dashboard] Error setting OAuth cookie:', error)
-        }
-      }
-    }
-    
-    checkAndSetCookie()
-  }, [user])
+  // Remove this effect - AuthContext will handle it
 
   useEffect(() => {
     fetchStats()

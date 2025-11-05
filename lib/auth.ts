@@ -125,6 +125,14 @@ export const authConfig: NextAuthConfig = {
           }
           
           console.log(`[NextAuth signIn] ✅ ${account.provider} authentication successful for ${user.email}`)
+          
+          // Store user ID in the user object so we can pass it through the redirect
+          const dbUser = await User.findOne({ email: user.email })
+          if (dbUser) {
+            user.id = dbUser._id.toString()
+            console.log(`[NextAuth signIn] User ID set: ${user.id}`)
+          }
+          
           return true
         } catch (error) {
           console.error(`[NextAuth signIn] ❌ Error in ${account.provider} sign-in:`, error)
@@ -140,13 +148,8 @@ export const authConfig: NextAuthConfig = {
     async redirect({ url, baseUrl }) {
       console.log('[NextAuth redirect] URL:', url, 'Base:', baseUrl)
       
-      // After OAuth completes, redirect to server-side handler that sets JWT cookie
-      // This must happen while the NextAuth session still exists
-      if (url === `${baseUrl}/dashboard` || url === '/dashboard') {
-        console.log('[NextAuth redirect] ✅ Redirecting to OAuth success handler')
-        return `${baseUrl}/api/auth/oauth-success`
-      }
-      
+      // Don't use custom redirect - let NextAuth handle it naturally
+      // The dashboard will detect missing user data and set JWT cookie
       if (url.startsWith('/')) {
         return `${baseUrl}${url}`
       }
@@ -184,6 +187,10 @@ export const authConfig: NextAuthConfig = {
     async jwt({ token, user, account }) {
       if (user) {
         token.sub = user.id
+        // Store user info in token for session callback
+        token.email = user.email
+        token.name = user.name
+        token.image = user.image
       }
       return token
     }
