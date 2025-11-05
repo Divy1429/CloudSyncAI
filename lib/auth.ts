@@ -137,13 +137,13 @@ export const authConfig: NextAuthConfig = {
       console.log('[NextAuth signIn] ✅ Authentication successful (non-OAuth)')
       return true
     },
-    async redirect({ url, baseUrl }) {
-      console.log('[NextAuth redirect] URL:', url, 'Base:', baseUrl)
+    async redirect({ url, baseUrl, trigger }) {
+      console.log('[NextAuth redirect] URL:', url, 'Base:', baseUrl, 'Trigger:', trigger)
       
-      // After successful OAuth callback, redirect to custom callback page
+      // After successful OAuth signin, redirect to custom callback page first
       // This page will set the JWT cookie as a fallback since NextAuth cookies don't persist on Vercel
-      if (url.startsWith(baseUrl) && url.includes('/api/auth/callback')) {
-        console.log('[NextAuth redirect] Redirecting to custom callback page')
+      if (trigger === 'signIn' && (url === `${baseUrl}/dashboard` || url === '/dashboard')) {
+        console.log('[NextAuth redirect] ✅ Redirecting to custom callback page after OAuth')
         return `${baseUrl}/auth/callback`
       }
       
@@ -182,28 +182,6 @@ export const authConfig: NextAuthConfig = {
         }
       }
       return session
-    },
-    async redirect({ url, baseUrl }) {
-      console.log('[NextAuth redirect] URL:', url, 'Base:', baseUrl)
-      
-      // After successful OAuth callback, redirect to custom callback page
-      // This page will set the JWT cookie as a fallback since NextAuth cookies don't persist on Vercel
-      if (url.startsWith(baseUrl) && url.includes('/api/auth/callback')) {
-        console.log('[NextAuth redirect] Redirecting to custom callback page')
-        return `${baseUrl}/auth/callback`
-      }
-      
-      // Allow relative URLs
-      if (url.startsWith('/')) {
-        return `${baseUrl}${url}`
-      }
-      
-      // Allow same-origin URLs  
-      if (url.startsWith(baseUrl)) {
-        return url
-      }
-      
-      return baseUrl
     },
     async jwt({ token, user, account }) {
       if (user) {
