@@ -137,22 +137,20 @@ export const authConfig: NextAuthConfig = {
       console.log('[NextAuth signIn] ✅ Authentication successful (non-OAuth)')
       return true
     },
-    async redirect({ url, baseUrl, trigger }) {
-      console.log('[NextAuth redirect] URL:', url, 'Base:', baseUrl, 'Trigger:', trigger)
+    async redirect({ url, baseUrl }) {
+      console.log('[NextAuth redirect] URL:', url, 'Base:', baseUrl)
       
-      // After successful OAuth signin, redirect to custom callback page first
-      // This page will set the JWT cookie as a fallback since NextAuth cookies don't persist on Vercel
-      if (trigger === 'signIn' && (url === `${baseUrl}/dashboard` || url === '/dashboard')) {
-        console.log('[NextAuth redirect] ✅ Redirecting to custom callback page after OAuth')
-        return `${baseUrl}/auth/callback`
+      // After OAuth completes, redirect to server-side handler that sets JWT cookie
+      // This must happen while the NextAuth session still exists
+      if (url === `${baseUrl}/dashboard` || url === '/dashboard') {
+        console.log('[NextAuth redirect] ✅ Redirecting to OAuth success handler')
+        return `${baseUrl}/api/auth/oauth-success`
       }
       
-      // Allow relative URLs
       if (url.startsWith('/')) {
         return `${baseUrl}${url}`
       }
       
-      // Allow same-origin URLs  
       if (url.startsWith(baseUrl)) {
         return url
       }
