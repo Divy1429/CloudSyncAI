@@ -63,8 +63,11 @@ export const authConfig: NextAuthConfig = {
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
+      console.log('[NextAuth signIn] Provider:', account?.provider, 'Email:', user?.email)
+      
       if (account?.provider === "google" || account?.provider === "github") {
         try {
+          console.log(`[NextAuth signIn] Processing ${account.provider} OAuth for ${user.email}`)
           await dbConnect()
           
           // Check if user exists
@@ -102,6 +105,7 @@ export const authConfig: NextAuthConfig = {
             }
             
             await User.create(newUserData)
+            console.log(`[NextAuth signIn] ✅ Created new user via ${account.provider}`)
 
             // Log activity for new user (but don't fail login if this fails)
             try {
@@ -120,15 +124,18 @@ export const authConfig: NextAuthConfig = {
             }
           }
           
+          console.log(`[NextAuth signIn] ✅ ${account.provider} authentication successful for ${user.email}`)
           return true
         } catch (error) {
-          console.error(`Error in ${account.provider} sign-in:`, error)
-          // Return true anyway to allow login - database issues shouldn't block OAuth
-          return true
+          console.error(`[NextAuth signIn] ❌ Error in ${account.provider} sign-in:`, error)
+          // Return false on error to prevent login with invalid state
+          return false
         }
       }
       
-      return "/auth/callback" // Redirect to custom callback page to set JWT cookie
+      // Return true for credentials provider and any other providers
+      console.log('[NextAuth signIn] ✅ Authentication successful (non-OAuth)')
+      return true
     },
     async session({ session, token }) {
       console.log('[NextAuth session callback] Called with:', { 
@@ -164,8 +171,6 @@ export const authConfig: NextAuthConfig = {
   pages: {
     signIn: "/login",
     error: "/login",
-    // Redirect to custom callback page after OAuth to set JWT cookie
-    newUser: "/auth/callback",
   },
   session: {
     strategy: "jwt",
@@ -176,14 +181,9 @@ export const authConfig: NextAuthConfig = {
       name: `${process.env.NODE_ENV === 'production' ? '__Secure-' : ''}next-auth.session-token`,
       options: {
         httpOnly: true,
-        // Use 'none' for OAuth callback compatibility across providers and redirects
-        // (some browsers enforce stricter cross-site cookie policies on OAuth flows).
-        sameSite: 'none',
+        sameSite: 'lax', // Changed from 'none' for better OAuth compatibility
         path: '/',
         secure: process.env.NODE_ENV === 'production',
-        // Explicit domain in production can help ensure the cookie is scoped to the Vercel host
-        // (adjust if you use a custom domain). Leave undefined in development.
-        domain: process.env.NODE_ENV === 'production' ? 'cloud-sync-ai.vercel.app' : undefined,
       },
     },
   },
